@@ -3,6 +3,12 @@ Web interface for the Volatility Memory Forensics Framework
 
 https://youtu.be/55G2oGPQHF8
 
+## Usage
+-f File containing the RAM dump to analyze <br />
+-p Volatility profile to use during analysis <br />
+
+<img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-cmd.png" />
+
 ## Features
 - Works with any Volatility module that provides a SQLite render method (some don't)
 - Automatically detects plugins - If volatility sees the plugin, so will eVOLve
