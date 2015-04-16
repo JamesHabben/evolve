@@ -1,0 +1,28 @@
+list of IP addresses from multiple modules excluding internal
+----------------------------------------
+select * from (
+SELECT distinct substr(remoteaddress, 1, instr(remoteaddress,':')-1) as address FROM connections
+union
+select distinct address from sockets
+union
+select distinct substr(remoteaddress, 1, instr(remoteaddress,':')-1) as address FROM connscan
+)
+where address not like '10%'
+order by address
+============================================
+dlllist with process names
+------------------------------------
+SELECT d.*, p.name
+FROM dlllist d left outer join pslist p on p.pid = d.pid
+============================================
+pslist with parent process name
+-------------------------------
+SELECT * ,
+(select name from pslist p2 where p1.ppid = p2.pid) as parname
+FROM pslist p1
+===========================================
+dlllist with name filtered for wsock32.dll
+------------------------------------------
+SELECT d.*, p.name
+FROM dlllist d join pslist p on p.pid=d.pid where path like '%wsock32.dll'
+===========================================

@@ -1,0 +1,56 @@
+<html>
+<head>
+<script src="web/jquery-2.1.3.min.js" type="text/javascript"></script>
+<script src="web/evolve.js" type="text/javascript"></script>
+
+<style type="text/css">
+    body {margin:0; font-family: ‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif;}
+    #header {background-color:black; width:full; height:38px; color:white; font-size:35pt; padding:10px;}
+    #dumpdata {background-color:black; padding:2px 7px 2px 7px;}
+    #dumpfile {color:grey;}
+    #profile {color:grey; float:right;}
+    #volhdr {font-size:16pt;}
+    #evover {font-size:10pt;}
+    .plugindata {background-color:#B2CFE6; padding: 1px;}
+    .plugin {padding: 1px;}
+    .pluginshowdata {float:right; background:#FFD383; width: 55px; text-align:center; border: 1px solid black;cursor: pointer;}
+    .pluginrun {float:right; background:#FFD383; width: 55px; text-align:center; border: 1px solid black;cursor: pointer;}
+    .odd {background:lightgrey;}
+    .datatablehdr {background:#9B9A9A; padding:3px; text-align:center;}
+    #dataview {position:absolute;}
+    #datahdr {font-size: 20pt;}
+    #showsqlbutton {background:#FFD383; border: 1px solid black; padding: 1px;cursor: pointer;}
+    #runsqlbutton {background:#FFD383; border: 1px solid black; padding: 1px;cursor: pointer;}
+    #datasql {margin-left:0px; display:inline-block; width:500px;}
+    #sqlerror {background:pink; display:none; padding:3px;}
+    tr:hover {background-color: #B2CFE6;}
+    tr:hover td {background-color: transparent;}
+</style>
+</head>
+<body>
+<div id="header">
+    <img src="web/evolve-logo-sml.png" /> <span id="evover">v</span> | <span id="volhdr">Web Interface for Volatility Framework (version <span id="volver"></span>)</span>
+</div>
+<div id="dumpdata">
+    <span id="dumpfile">File</span>
+    <span id="profile">Profile</span>
+</div>
+<div>
+<div style="float:left; border: 2px solid black; padding:1px;">
+Supported Plugins
+    <div id="pluglist">
+
+    </div>
+</div>
+<span id="dataview" style="display:none; border: 2px solid black; padding: 5px;">
+    <div id="hdrcontainer"><span id="datahdr" contenteditable="true"></span> <span id="showsqlbutton">Show SQL</span> </div>
+    <div id="sqlcontainer" style="display:none;">
+        <textarea id="datasql" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+        <span id="runsqlbutton">Run SQL (F5)</span>
+        <div id="sqlerror">test</div>
+    </div>
+    <table id="datatable"></table>
+</span>
+</div>
+</body>
+</html>
