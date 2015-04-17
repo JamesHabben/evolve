@@ -16,8 +16,9 @@ Then install these dependencies: <br />
 `pip install bottle` <br />
 `pip install yara` <br/ >
 `pip install distorm3` <br/ >
-* note: you may need to prefix `sudo` on the above commands depending on your OS.
-* You may also need to prefix `python` if it is not in your run path.
+* Note: you may need to prefix `sudo` on the above commands depending on your OS.
+* Note: You may also need to prefix `python` if it is not in your run path.
+* Note: Windows may require distorm3 download: https://pypi.python.org/pypi/distorm3/3.3.0
 
 
 ## Usage
