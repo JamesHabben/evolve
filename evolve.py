@@ -69,8 +69,8 @@ if config.PROFILE not in profs:
     #raise BaseException("Invalid profile " + config.PROFILE + " selected")
     print "Invalid profile " + config.PROFILE + " selected"
     exit()
-args.file = "file://" + args.file
-config.LOCATION = args.file #evpath
+
+config.LOCATION = "file://" + args.file
 config.OUTPUT_FILE = args.file +".sqlite"
 config.parse_options()
 profile = profs[config.PROFILE]()
