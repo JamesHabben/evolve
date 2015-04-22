@@ -25,6 +25,8 @@ Then install these dependencies: <br />
 -f File containing the RAM dump to analyze <br />
 -p Volatility profile to use during analysis <br />
 
+!!! WARNING: NFS shares can lock or corrupt SQLite files. Try mounting share with 'nolock' option.
+
 <img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-cmd.png" />
 
 ## Features
