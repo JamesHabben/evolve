@@ -24,8 +24,9 @@ Then install these dependencies: <br />
 ## Usage
 -f File containing the RAM dump to analyze <br />
 -p Volatility profile to use during analysis <br />
+-d Optional path for output file. Default is beside memory image <br />
 
-!!! WARNING: NFS shares can lock or corrupt SQLite files. Try mounting share with 'nolock' option.
+!!! WARNING: Avoid writing sqlite to NFS shares. They can lock or get corrupt. If you must, try mounting share with 'nolock' option.
 
 <img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-cmd.png" />
 
@@ -42,7 +43,7 @@ Then install these dependencies: <br />
 ## Coming Features
 - Save custom queries for future use
 - Import/Export queries to share with others
-- Threading for more responsive interface while modules are running
+- ~~Threading for more responsive interface while modules are running~~
 - Export/save of table data to JSON, CSV, etc
 - Review mode which requires only the generated SQLite file for better portability
 
@@ -51,3 +52,7 @@ Please send your ideas for features!
 <img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-connections.png" />
 <br /><br />
 <img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-wsock32.png" />
+
+Release notes:<br />
+v1.0 - Initial release <br />
+v1.1 - Threading, Output folder option, removed unused imports<br />
