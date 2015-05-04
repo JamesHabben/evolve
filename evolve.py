@@ -92,11 +92,15 @@ if config.PROFILE not in profs:
     exit()
 
 config.LOCATION = "file://" + args.file
+<<<<<<< HEAD
 config.OUTPUT_FILE = args.file + ".sqlite"
 if args.dbfolder:
     print "Hashing input file...",
     config.OUTPUT_FILE = os.path.join(args.dbfolder, hashlib.md5(open(args.file).read()).hexdigest() + ".sqlite")
     print "done"
+=======
+config.OUTPUT_FILE = args.file +".sqlite"
+>>>>>>> origin/master
 config.parse_options()
 profile = profs[config.PROFILE]()
 
@@ -111,7 +115,7 @@ print "Volatility Version: " + constants.VERSION
 
 @route('/')
 def index():
-    return bottle.static_file('eVOLve.htm',root='web')
+    return bottle.static_file('evolve.htm',root='web')
 
 @route('/web/:path#.+#', name='web')
 def static(path):
