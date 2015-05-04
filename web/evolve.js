@@ -1,4 +1,5 @@
 function GetPluginList () {
+    set_timer = false
     $.ajax({url:'data/plugins',dataType:'json'}).success(
         function (data) {
             $("#pluglist").html("")
@@ -17,19 +18,27 @@ function GetPluginList () {
             )
             $.each($.grep(data.plugins,
                 function(d,i) {
-                    return d.data == 0
+                    return d.data == 0 || d.data == 2
                 }),
                 function(k,v) {
-                    $("#pluglist").append(
-                    '<div class="plugin" title="' + v.help + '">' +
-                    v.name +
-                    '<span class="pluginrun" onclick="RunPlugin(\'' + v.name + '\',this)">' +
-                    'run' +
-                    '</span></div>')
+                    tag_string = '<div class="plugin" title="' + v.help + '">' + v.name
+                    if (v.data == 0) {
+                        tag_string += '<span class="pluginrun" onclick="RunPlugin(\'' + v.name + '\',this)">' +
+                                      'run</span></div>'
+                    }
+                    else {
+                        tag_string += '<span class="pluginrunning" >running</span></div>'
+                        set_timer = true
+                    }
+                    $("#pluglist").append(tag_string)
                 }
             )
+            if (set_timer) {
+                setTimeout(GetPluginList, 1000)
+            }
         }
     )
+
 }
 
 $.ajax({url:'data/volversion'}).success(
@@ -103,9 +112,9 @@ function ShowDataFancy (pluginname) {
 
 function RunPlugin (pluginname, callingobj) {
     $(callingobj).html('running')
-    $(callingobj).css({'background':'lightgrey'})
+    $(callingobj).css({'background':'lightgrey', 'cursor':'none'})
     $.ajax({url:'/run/plugin/' + pluginname})
-    setTimeout(GetPluginList, 500)
+    setTimeout(GetPluginList, 1000)
 }
 
 var SqlShown = false

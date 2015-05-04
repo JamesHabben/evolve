@@ -1,13 +1,12 @@
 __author__ = 'james.habben'
-#evpath = 'file:///Users/jameshabben/Documents/Evidence Files/GST/PhysicalMemory'
-#dbpath = evpath + '.sqlite'
 
-evolveVersion = '1.0'
+evolveVersion = '1.1'
 
 import argparse
 argParser = argparse.ArgumentParser(description='Web interface for Volatility Framework.')
 argParser.add_argument('-f', '--file', help='RAM dump to analyze')
 argParser.add_argument('-l', '--local', help='Restrict webserver to serving \'localhost\' only')
+argParser.add_argument('-d', '--dbfolder', help='Optional database location')
 argParser.add_argument('-p', '--profile', help='Memory profile to use with Volatility')
 args = argParser.parse_args()
 
@@ -17,41 +16,63 @@ if not args.file:
     exit()
 
 import sys
-import volatility
+import os
+#import volatility
 import bottle
 import sqlite3
 import json
+import multiprocessing
+import hashlib
+#import threading
 
 import volatility.constants as constants
 import volatility.registry as registry
 import volatility.commands as commands
 import volatility.conf as conf
 import volatility.obj as obj
-import volatility.plugins.taskmods as taskmods
+#import volatility.plugins.taskmods as taskmods
 import volatility.addrspace as addrspace
-import volatility.utils as utils
-import volatility.renderers as render
-import volatility.plugins as plugins
-#import volatility.plugins.filescan as filescan
-#from volatility.plugins import *
+#import volatility.utils as utils
+#import volatility.renderers as render
+#import volatility.plugins as plugins
+
 from bottle import route, Bottle, run, request
 
-Plugins = {'plugins':[]}
+results = multiprocessing.Queue()
+
+Plugins = dict(plugins=[], hash=0)
 def BuildPluginList():
     Plugins['plugins'] = []
-    #cmds = registry.get_plugin_classes(commands.Command, lower = True)
-    con = sqlite3.connect(config.OUTPUT_FILE)
-    curs = con.cursor()
     for cmdname in sorted(cmds):
         command = cmds[cmdname]
         if command.is_valid_profile(profile):
-            curs.execute("select name from sqlite_master where type = 'table' and name like ?;", (cmdname,))
-            val=0
-            if curs.fetchone() is not None:
-                val=1
-            Plugins['plugins'].append({'name':cmdname,'data':val,'help':command.help()})
+            Plugins['plugins'].append({'name':cmdname,'help':command.help(), 'data':0, 'error':''})
+    Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
+
+def UpdatePluginList():
+    con = sqlite3.connect(config.OUTPUT_FILE)
+    curs = con.cursor()
+    curs.execute("select name from sqlite_master where type = 'table';")
+    tables = []
+    for tab in curs.fetchall():
+        tables.append(tab[0].lower())
+    jobs = []
+    while not results.empty():
+        jobs.append(results.get())
     curs.close()
     con.close()
+    for cmdname in Plugins['plugins']:
+        if cmdname['data'] == 1 and cmdname['name'] not in tables:
+            cmdname['data'] = 0
+        if cmdname['error'] == '' and cmdname['data'] != 2 and cmdname['name'] in tables:
+            cmdname['data'] = 1
+        if cmdname['data'] == 2 and cmdname['name'] in jobs:
+            if cmdname['name'] in tables:
+                cmdname['data'] = 1
+            else:
+                cmdname['data'] = 0
+    Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
+
 
 config = conf.ConfObject()
 registry.PluginImporter()
@@ -69,18 +90,20 @@ if config.PROFILE not in profs:
     #raise BaseException("Invalid profile " + config.PROFILE + " selected")
     print "Invalid profile " + config.PROFILE + " selected"
     exit()
-args.file = "file://" + args.file
-config.LOCATION = args.file #evpath
-config.OUTPUT_FILE = args.file +".sqlite"
+
+config.LOCATION = "file://" + args.file
+config.OUTPUT_FILE = args.file + ".sqlite"
+if args.dbfolder:
+    print "Hashing input file...",
+    config.OUTPUT_FILE = os.path.join(args.dbfolder, hashlib.md5(open(args.file).read()).hexdigest() + ".sqlite")
+    print "done"
 config.parse_options()
 profile = profs[config.PROFILE]()
 
 
-
-#print args.file
-
 cmds = registry.get_plugin_classes(commands.Command, lower = True)
 BuildPluginList()
+UpdatePluginList()
 
 print "Volatility Version: " + constants.VERSION
 
@@ -96,7 +119,7 @@ def static(path):
 
 @route('/data/plugins')
 def ajax_plugins():
-    BuildPluginList()
+    UpdatePluginList()
     return json.dumps(Plugins)
 
 @route('/data/volversion')
@@ -144,7 +167,6 @@ def dict_factory(cursor, row):
 @route('/data2/plugin/<name>')
 def plugin_data2(name):
     con = sqlite3.connect(config.OUTPUT_FILE)
-    curs = con.cursor()
     con.row_factory = dict_factory
     cur = con.cursor()
     cur.execute("SELECT * FROM " + name)
@@ -152,13 +174,29 @@ def plugin_data2(name):
 
 @route('/run/plugin/<name>')
 def run_plugin(name):
+    for cmdname in Plugins['plugins']:
+        if cmdname['name'] == name:
+            cmdname['data'] = 2 # running
+    p = multiprocessing.Process(target=run_plugin_process, kwargs=dict(name=name, queue=results,))
+    #p.daemon = True
+    p.start()
+    return
+
+def run_plugin_process(name, queue):
     config.parse_options()
     command = cmds[name](config)
-    calc = command.calculate()
-    command.render_sqlite(config.OUTPUT_FILE, calc)
-    return "done"
+    try:
+        calc = command.calculate()
+        command.render_sqlite(config.OUTPUT_FILE, calc)
+    except Exception as err:
+        print name + ": " + err.message
+    finally:
+        queue.put(name)
+    return
 
 app = Bottle()
-run(host='0.0.0.0', port=8080)
-
+hostip = '0.0.0.0'
+if args.local:
+    hostip = '127.0.0.1'
+run(host=hostip, port=8080)
 
