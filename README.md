@@ -8,14 +8,24 @@ https://youtu.be/55G2oGPQHF8
 ## Installation
 This requires volatility to be a library, not just an EXE file sitting somewhere. Run these commands at python shell:
 
-`pip install volatility` <br />
+Download Volatility source zip from https://github.com/volatilityfoundation/volatility<br />
+Inside the extracted folder run: <br />
+`setup.py install`<br />
+
+Then install these dependencies: <br />
+`pip install bottle` <br />
 `pip install yara` <br/ >
 `pip install distorm3` <br/ >
-* note: you may need to prefix 'sudo' on the above commands depending on your OS.
+* Note: you may need to prefix `sudo` on the above commands depending on your OS.
+* Note: You may also need to prefix `python` if it is not in your run path.
+* Note: Windows may require distorm3 download: https://pypi.python.org/pypi/distorm3/3.3.0
+
 
 ## Usage
 -f File containing the RAM dump to analyze <br />
 -p Volatility profile to use during analysis <br />
+
+!!! WARNING: NFS shares can lock or corrupt SQLite files. Try mounting share with 'nolock' option.
 
 <img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-cmd.png" />
 
