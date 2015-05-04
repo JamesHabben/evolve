@@ -2,6 +2,8 @@
 Web interface for the Volatility Memory Forensics Framework
 https://github.com/volatilityfoundation/volatility
 
+Current Version: 1.1 (2015-05-04)
+
 Short video demo:
 https://youtu.be/55G2oGPQHF8
 
