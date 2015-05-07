@@ -1,21 +1,23 @@
 __author__ = 'james.habben'
 
-evolveVersion = '1.1'
+evolveVersion = '1.2'
 
+import sys
 import argparse
 argParser = argparse.ArgumentParser(description='Web interface for Volatility Framework.')
+argParser.add_argument('-d', '--dbfolder', help='Optional database location')
 argParser.add_argument('-f', '--file', help='RAM dump to analyze')
 argParser.add_argument('-l', '--local', help='Restrict webserver to serving \'localhost\' only')
-argParser.add_argument('-d', '--dbfolder', help='Optional database location')
 argParser.add_argument('-p', '--profile', help='Memory profile to use with Volatility')
+argParser.add_argument('-r', '--run', help='Give a comma separated list of plugins to run on startup')
 args = argParser.parse_args()
+sys.argv = []
 
 if not args.file:
     #raise BaseException("RAM dump file is required.")
     print "RAM dump file is required."
     exit()
 
-import sys
 import os
 #import volatility
 import bottle
@@ -193,6 +195,16 @@ def run_plugin_process(name, queue):
     finally:
         queue.put(name)
     return
+
+if args.run:
+    runlist = args.run.split(',')
+    for runplug in runlist:
+        for plug in Plugins['plugins']:
+            if plug['name'] == runplug and plug['data'] == 0:
+                plug['data'] = 2 # running
+                p = multiprocessing.Process(target=run_plugin_process, kwargs=dict(name=runplug, queue=results,))
+                p.daemon = True
+                p.start()
 
 app = Bottle()
 hostip = '0.0.0.0'
