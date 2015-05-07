@@ -2,10 +2,12 @@
 Web interface for the Volatility Memory Forensics Framework
 https://github.com/volatilityfoundation/volatility
 
-Current Version: 1.1 (2015-05-04)
+Current Version: 1.2 (2015-05-07)
 
 Short video demo:
 https://youtu.be/55G2oGPQHF8
+Pre-Scan video:
+https://youtu.be/mqMuQQowqMI
 
 ## Installation
 This requires volatility to be a library, not just an EXE file sitting somewhere. Run these commands at python shell:
@@ -27,6 +29,7 @@ Then install these dependencies: <br />
 -f File containing the RAM dump to analyze <br />
 -p Volatility profile to use during analysis <br />
 -d Optional path for output file. Default is beside memory image <br />
+-r comma separated list of plugins to run at the start<br />
 
 !!! WARNING: Avoid writing sqlite to NFS shares. They can lock or get corrupt. If you must, try mounting share with 'nolock' option.
 
@@ -41,6 +44,8 @@ Then install these dependencies: <br />
 - Option to edit SQL query to provide enhanced data views with data from multiple tables
 - Run plugins and view data from any browser - even a tablet!
 - Allow multiple people to review results of single RAM dump
+- Multiprocessing for full CPU usage
+- Pre-Scan runs a list of plugins at the start
 
 ## Coming Features
 - Save custom queries for future use
@@ -58,3 +63,4 @@ Please send your ideas for features!
 Release notes:<br />
 v1.0 - Initial release <br />
 v1.1 - Threading, Output folder option, removed unused imports<br />
+v1.2 - Pre-Scan option to run list of plugins at the start<br />
