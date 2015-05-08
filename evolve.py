@@ -8,6 +8,7 @@ argParser = argparse.ArgumentParser(description='Web interface for Volatility Fr
 argParser.add_argument('-d', '--dbfolder', help='Optional database location')
 argParser.add_argument('-f', '--file', help='RAM dump to analyze')
 argParser.add_argument('-l', '--local', help='Restrict webserver to serving \'localhost\' only')
+argParser.add_argument('-w', '--webport', help='Port to bind Web Server on', default=8080)
 argParser.add_argument('-p', '--profile', help='Memory profile to use with Volatility')
 argParser.add_argument('-r', '--run', help='Give a comma separated list of plugins to run on startup')
 args = argParser.parse_args()
@@ -210,5 +211,5 @@ app = Bottle()
 hostip = '0.0.0.0'
 if args.local:
     hostip = '127.0.0.1'
-run(host=hostip, port=8080)
+run(host=hostip, port=args.webport)
 
