@@ -29,6 +29,7 @@ Then install these dependencies: <br />
 -f File containing the RAM dump to analyze <br />
 -p Volatility profile to use during analysis <br />
 -d Optional path for output file. Default is beside memory image <br />
+-l Restrict web server from serving content outside of the local machine <br />
 -r comma separated list of plugins to run at the start<br />
 
 !!! WARNING: Avoid writing sqlite to NFS shares. They can lock or get corrupt. If you must, try mounting share with 'nolock' option.
