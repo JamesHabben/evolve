@@ -3,9 +3,9 @@ Web interface for the Volatility Memory Forensics Framework
 https://github.com/volatilityfoundation/volatility
 
 Current Version: 1.2 (2015-05-07)
-
+See what people are saying: [#EvolveTool](https://twitter.com/search?q=%23evolvetool) <br />
 Short video demo:
-https://youtu.be/55G2oGPQHF8
+https://youtu.be/55G2oGPQHF8 <br />
 Pre-Scan video:
 https://youtu.be/mqMuQQowqMI
 
