@@ -4,7 +4,7 @@
 <script src="web/evolve.js" type="text/javascript"></script>
 
 <style type="text/css">
-    body {margin:0; font-family: ‘Lucida Sans Unicode’, ‘Lucida Grande’, sans-serif;}
+    body {margin:0; font-family:‘Lucida Sans Unicode’,‘Lucida Grande’,sans-serif;}
     #header {background-color:black; width:full; height:38px; color:white; font-size:35pt; padding:10px;}
     #dumpdata {background-color:black; padding:2px 7px 2px 7px;}
     #dumpfile {color:grey;}
@@ -13,21 +13,25 @@
     #evover {font-size:10pt;}
     #twitter {font-size:10pt; float:right;}
     #twitter a {color:white;}
-    .plugindata {background-color:#B2CFE6; padding: 1px;}
+    .plugindata {background-color:#B2CFE6; padding:1px;}
     .plugin {padding: 1px;}
-    .pluginshowdata {float:right; background:#FFD383; width: 55px; text-align:center; border: 1px solid black;cursor: pointer;}
-    .pluginrun {float:right; background:#FFD383; width: 55px; text-align:center; border: 1px solid black;cursor: pointer;}
-    .pluginrunning {float:right; background:lightgrey; width: 55px; text-align:center; border: 1px solid black;}
+    .pluginshowdata {float:right; background:#FFD383; width:55px; text-align:center; border:1px solid black; cursor:pointer;}
+    .pluginrun {float:right; background:#FFD383; width:55px; text-align:center; border:1px solid black; cursor:pointer;}
+    .pluginrunning {float:right; background:lightgrey; width:55px; text-align:center; border:1px solid black;}
     .odd {background:lightgrey;}
     .datatablehdr {background:#9B9A9A; padding:3px; text-align:center;}
+    .tab {background:lightgrey; padding:2px; margin:2px; cursor:pointer;}
+    .activetab {background-color:#B2CFE6; cursor:default;}
+    .morphtag {background-color:#B2CFE6; border:1px solid grey; padding:2px; cursor:pointer; margin:2px}
+    .activemorphtag {background-color:#2DA2FF;}
     #dataview {position:absolute;}
     #datahdr {font-size: 20pt;}
-    #showsqlbutton {background:#FFD383; border: 1px solid black; padding: 1px;cursor: pointer;}
-    #runsqlbutton {background:#FFD383; border: 1px solid black; padding: 1px;cursor: pointer;}
+    #showsqlbutton {background:#FFD383; border:1px solid black; padding:1px; cursor:pointer;}
+    #runsqlbutton {background:#FFD383; border:1px solid black; padding:1px; cursor:pointer;}
     #datasql {margin-left:0px; display:inline-block; width:500px;}
     #sqlerror {background:pink; display:none; padding:3px;}
-    tr:hover {background-color: #B2CFE6;}
-    tr:hover td {background-color: transparent;}
+    tr:hover {background-color:#B2CFE6;}
+    tr:hover td {background-color:transparent;}
 </style>
 </head>
 <body>
@@ -41,13 +45,17 @@
 </div>
 <div>
 <div style="float:left; border: 2px solid black; padding:1px;">
-Supported Plugins
-    <div id="pluglist">
-
-    </div>
+    <span id="tabplugin" class="activetab tab">Plugins</span>
+    <span id="tabmorph" class="tab">Morphs</span>
+    <div id="pluglist"></div>
+    <div id="morphlist" style="display:none"></div>
 </div>
 <span id="dataview" style="display:none; border: 2px solid black; padding: 5px;">
-    <div id="hdrcontainer"><span id="datahdr" contenteditable="true"></span> <span id="showsqlbutton">Show SQL</span> </div>
+    <div id="hdrcontainer">
+        <span id="datahdr" contenteditable="true"></span>
+        <span id="showsqlbutton">Show SQL</span>
+        <span id="morphtags"></span>
+    </div>
     <div id="sqlcontainer" style="display:none;">
         <textarea id="datasql" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
         <span id="runsqlbutton">Run SQL (F5)</span>

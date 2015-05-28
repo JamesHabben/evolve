@@ -2,13 +2,13 @@ function GetPluginList () {
     set_timer = false
     $.ajax({url:'data/plugins',dataType:'json'}).success(
         function (data) {
-            $("#pluglist").html("")
+            $('#pluglist').html('')
             $.each($.grep(data.plugins,
                 function(d,i) {
                     return d.data == 1
                 }),
                 function(k,v) {
-                    $("#pluglist").append(
+                    $('#pluglist').append(
                     '<div class="plugindata" title="' + v.help + '">' +
                     v.name +
                     '<span class="pluginshowdata" onclick="GetData(\'' + v.name + '\')">' +
@@ -30,9 +30,23 @@ function GetPluginList () {
                         tag_string += '<span class="pluginrunning" >running</span></div>'
                         set_timer = true
                     }
-                    $("#pluglist").append(tag_string)
+                    $('#pluglist').append(tag_string)
                 }
             )
+            $('#morphlist').html('')
+            $.each(data.morphs, function(k,v) {
+                    $('#morphlist').append(
+                    '<div class="plugindata" title="' + v.display + '\n' + v.helptext + '">' +
+                    v.name +
+                    '</div>')
+                    $.each(v.plugins, function(pk,pv) {
+                        $('#morphlist').append(
+                            '<div class="plugindata"><li>' + pv + '' +
+                            '<span class="pluginshowdata" onclick="GetMorph(\'' + pv + '\',\'' + v.name + '\')">show' +
+                    '</span></li></div>'
+                        )
+                    })
+            })
             if (set_timer) {
                 setTimeout(GetPluginList, 1000)
             }
@@ -43,25 +57,25 @@ function GetPluginList () {
 
 $.ajax({url:'data/volversion'}).success(
     function (data) {
-        $("#volver").html(data)
+        $('#volver').html(data)
     }
 )
 
 $.ajax({url:'data/evolveversion'}).success(
     function (data) {
-        $("#evover").html('v' + data)
+        $('#evover').html('v' + data)
     }
 )
 
 $.ajax({url:'data/filepath'}).success(
     function (data) {
-        $("#dumpfile").html( data)
+        $('#dumpfile').html( data)
     }
 )
 
 $.ajax({url:'data/profilename'}).success(
     function (data) {
-        $("#profile").html( data)
+        $('#profile').html( data)
     }
 )
 
@@ -71,28 +85,56 @@ function GetData (pluginname) {
     })
 }
 
-function ShowData (data) {
-    //$.getJSON('/data/view/' + pluginname , function(data) {
-        var tbl_body = '';
-        var odd_even = false;
-        tbl_body = '<tr>'
-        $.each(data.columns, function(k, v) {
-            tbl_body += '<td class="datatablehdr">' + v + '</td>'
-        })
-        tbl_body += '</tr>'
-        $.each(data.data, function() {
-            var tbl_row = ""
-            $.each(this, function(k, v) {
-                tbl_row += '<td>' + v + '</td>'
+function GetMorph (pluginname, morphname) {
+    $.getJSON('/data/view/' + pluginname + '/morph/' + morphname, function(data) {
+        ShowData(data)
+        $('#tag' + morphname).addClass('activemorphtag')
+            .on('click', this, function() {
+                GetData(pluginname)
             })
-            tbl_body += '<tr class="' + (odd_even ? 'odd' : 'even') + '">' + tbl_row + '</tr>'
-            odd_even = !odd_even
+
+    })
+}
+
+function ShowData (data) {
+    var tbl_body = '';
+    var odd_even = false;
+    tbl_body = '<thead>'
+    $.each(data.columns, function(k, v) {
+        tbl_body += '<td class="datatablehdr">' + v + '</td>'
+    })
+    tbl_body += '</thead>'
+    $.each(data.data, function() {
+        var tbl_row = ""
+        $.each(this, function(k, v) {
+            if (v !== null && typeof v === 'object') {
+                style = ''
+                if (v.style) {
+                    style = ' style="' + v.style + '"'
+                }
+                tbl_row += '<td' + style + '>' + v.value + '</td>'
+            }
+            else {
+                tbl_row += '<td>' + v + '</td>'
+            }
         })
-        $("#datahdr").html(data.name)
-        $("#datasql").val(data.query)
-        $("#datatable").html(tbl_body)
-        $("#dataview").css({"display":"inline"})
-    //})
+        tbl_body += '<tr class="' + (odd_even ? 'odd' : 'even') + '">' + tbl_row + '</tr>'
+        odd_even = !odd_even
+    })
+    $('#morphtags').html('')
+    $.each(data.morphs, function() {
+        morphname = this
+        $('#morphtags').append('<span onclick="GetMorph(\'' + data.name + '\', \'' + this + '\')" class="morphtag" id="tag' + this + '">' +
+            this + '</span>')
+            //.addclass('activemorphtag')
+        //$('#tag' + this).on('click', this, function() {
+        //    GetMorph(data.name, morphname)
+        //})
+    })
+    $('#datahdr').html(data.name)
+    $('#datasql').val(data.query)
+    $('#datatable').html(tbl_body)
+    $('#dataview').css({'display':'inline'})
 }
 
 function ShowDataFancy (pluginname) {
@@ -150,8 +192,25 @@ function RunSql () {
             })
 }
 
+function TabClickPlugin () {
+    $('#tabplugin').addClass('activetab')
+    $('#tabmorph').removeClass('activetab')
+    $('#pluglist').css({'display':'block'})
+    $('#morphlist').css({'display':'none'})
+    $('#tabmorph').click(TabClickMorph)
+    $('#tabplugin').click(null)
+}
+function TabClickMorph () {
+    $('#tabmorph').addClass('activetab')
+    $('#tabplugin').removeClass('activetab')
+    $('#morphlist').css({'display':'block'})
+    $('#pluglist').css({'display':'none'})
+    $('#tabplugin').click(TabClickPlugin)
+    $('#tabmorph').click(null)
+}
+
 $(function() {
-    //  changes mouse cursor when highlighting loawer right of box
+    //  changes mouse cursor when highlighting lower right of box
     $("textarea").mousemove(function(e) {
         var myPos = $(this).offset();
         myPos.bottom = $(this).offset().top + $(this).outerHeight();
@@ -187,5 +246,6 @@ $(document).ready(function() {
             return false;
         }
     })
-    $("#")
+    //$("#")
+    $("#tabmorph").click(TabClickMorph)
 })
