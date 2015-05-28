@@ -223,7 +223,7 @@ def run_plugin_process(name, queue, config, cmds):
         calc = command.calculate()
         command.render_sqlite(config.OUTPUT_FILE, calc)
     except Exception as err:
-        print name + ': ' + err.message + err.args
+        print name + ': ' + err.message
     finally:
         queue.put(name)
     return
@@ -243,5 +243,5 @@ if __name__ == '__main__':
     hostip = '0.0.0.0'
     if args.local:
         hostip = '127.0.0.1'
-    run(host=hostip, port=ars.webport)
+    run(host=hostip, port=args.webport)
 
