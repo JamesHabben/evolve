@@ -2,7 +2,7 @@
 Web interface for the Volatility Memory Forensics Framework
 https://github.com/volatilityfoundation/volatility
 
-Current Version: 1.2 (2015-05-07)
+Current Version: 1.3 (2015-05-27) <br /><br />
 See what people are saying: [#EvolveTool](https://twitter.com/search?q=%23evolvetool) <br />
 Short video demo:
 https://youtu.be/55G2oGPQHF8 <br />
@@ -65,3 +65,4 @@ Release notes:<br />
 v1.0 - Initial release <br />
 v1.1 - Threading, Output folder option, removed unused imports<br />
 v1.2 - Pre-Scan option to run list of plugins at the start<br />
+v1.3 - Added Morph function and sample Morphs. Also fixed multiprocess bug in Windows.<br />
