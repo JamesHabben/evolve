@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 __author__ = 'james.habben'
 
 evolveVersion = '1.3'
