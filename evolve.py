@@ -2,11 +2,14 @@
 
 __author__ = 'james.habben'
 
-evolveVersion = '1.3'
+evolveVersion = '1.4'
 
 import sys
 import argparse
 if __name__ == '__main__':
+    print 'Python Version: ' + sys.version
+    print 'Evolve Version: ' + evolveVersion
+
     argParser = argparse.ArgumentParser(description='Web interface for Volatility Framework.')
     argParser.add_argument('-d', '--dbfolder', help='Optional database location')
     argParser.add_argument('-f', '--file', help='RAM dump to analyze')
@@ -62,6 +65,7 @@ def BuildPluginList():
             __import__('morphs.' + morphfile.replace('.py',''))
     Plugins['morphs'] = []
     for sub in BaseMorph.__subclasses__():
+        #sub.__init__(sub)
         Plugins['morphs'].append({'name':sub.name, 'display':sub.displayname,'plugins':sub.plugins, 'helptext':sub.helptext})
     #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
@@ -90,6 +94,8 @@ def UpdatePluginList():
     #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
 if __name__ == '__main__':
+    print 'Volatility Version: ' + constants.VERSION
+
     config = conf.ConfObject()
     registry.PluginImporter()
     #config = conf.ConfObject()
@@ -121,9 +127,9 @@ if __name__ == '__main__':
     BuildPluginList()
     UpdatePluginList()
     
-    print 'Python Version: ' + sys.version
-    print 'Volatility Version: ' + constants.VERSION
-    print 'Evolve Version: ' + evolveVersion
+    #print 'Python Version: ' + sys.version
+    #print 'Volatility Version: ' + constants.VERSION
+    #print 'Evolve Version: ' + evolveVersion
 
 
 from bottle import route, Bottle, run, request, static_file
@@ -213,6 +219,55 @@ def run_plugin(name):
     p.daemon = True
     p.start()
     return
+
+@route('/config/morph/<name>', method='GET')
+def morph_config(name):
+    for sub in BaseMorph.__subclasses__():
+        if sub.name.lower() == name.lower():
+            cls = sub()
+            data = {
+                'name':cls.name,
+                'display':cls.displayname,
+                'helptext':cls.helptext,
+                'plugins':cls.plugins,
+                'config':cls.config
+            }
+            return json.dumps(data)
+
+@route('/config/morph/<name>', method='POST')
+def morph_set_config(name):
+    try:
+        for sub in BaseMorph.__subclasses__():
+            if sub.name.lower() == name.lower():
+                cls = sub()
+                #cls.SetConfig(request.forms.dict)
+                cls.SetConfig(request.json)
+                break
+        return json.dumps({'result':'success'})
+    except Exception as err:
+        print '%s %s', err.message, err.args
+        return json.dumps({'result':'error','msg':err.message})
+
+# backend function for the jqueryFileTree
+@route('/browse/server', method='POST')
+def dirlist():
+    r=['<ul class="jqueryFileTree" style="display: none;">']
+    try:
+        r=['<ul class="jqueryFileTree" style="display: none;">']
+        d=request.forms.get('dir')
+        for f in os.listdir(d):
+            ff=os.path.join(d,f)
+            if os.path.isdir(ff):
+                r.append('<li class="directory collapsed"><a href="#" rel="%s/">%s</a></li>' % (ff,f))
+            else:
+                e=os.path.splitext(f)[1][1:] # get .ext and remove dot
+                r.append('<li class="file ext_%s"><a href="#" rel="%s">%s</a></li>' % (e,ff,f))
+        r.append('</ul>')
+    except Exception,e:
+        r.append('Could not load directory: %s' % str(e))
+    r.append('</ul>')
+    return r
+
 
 def run_plugin_process(name, queue, config, cmds):
     registry.PluginImporter()
