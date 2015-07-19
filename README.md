@@ -20,9 +20,12 @@ Then install these dependencies: <br />
 `pip install bottle` <br />
 `pip install yara` <br/ >
 `pip install distorm3` <br/ >
+`pip install maxminddb` <br/ >
 * Note: you may need to prefix `sudo` on the above commands depending on your OS.
 * Note: You may also need to prefix `python` if it is not in your run path.
-* Note: Windows may require distorm3 download: https://pypi.python.org/pypi/distorm3/3.3.0
+* Note: Windows may require distorm3 download: https://pypi.python.org/pypi/distorm3/3.3.0.
+* Note: Windows pip seems to install Yara based on OS bitness, not python. Download installer: http://plusvic.github.io/yara/
+* Note: Microsoft Visual C++ Compiler for Python 2.7 will help pip install distorm3 and pycrypto: http://www.microsoft.com/en-us/download/details.aspx?id=44266
 
 
 ## Usage
