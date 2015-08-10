@@ -7,8 +7,10 @@
 
 <link rel="stylesheet" href="web/css/jqueryFileTree.css" type="text/css" />
 <link rel="stylesheet" href="web/css/jquery.dataTables.min.css" type="text/css" />
-<style type="text/css">
-    body {margin:0; font-family:‘Lucida Sans Unicode’,‘Lucida Grande’,sans-serif;}
+<link rel="stylesheet" href="web/css/evolve.css" type="text/css" />
+<styleaaa type="text/css">
+    <!--
+    body {margin:0; font-family:‘Lucida Sans Unicode’,‘Lucida Grande’,sans-serif; display:flex; }
     #header {background-color:black; width:full; height:38px; color:white; font-size:35pt; padding:10px;}
     #dumpdata {background-color:black; padding:2px 7px 2px 7px;}
     #dumpfile {color:grey;}
@@ -17,6 +19,7 @@
     #evover {font-size:10pt;}
     #twitter {font-size:10pt; float:right;}
     #twitter a {color:white;}
+    .box {display:flex;}
     .plugindata {background-color:#B2CFE6;}
     .plugin {padding:3px; width:215px;}
     .pluginshowdata {float:right; background:#FFD383; width:55px; text-align:center; border:1px solid black; cursor:pointer;}
@@ -52,7 +55,8 @@
     .reqnote {font-size:8pt; float:left; color:red; position:relative; top:-8px}
     #background {display:none; position:absolute; height:100%; width:100%; top:0; left:0; background:black; z-index:1;}
     #filetreediv {display:none; z-index:10; background:white; position:absolute; top:20; left:150; border:2px solid grey; overflow:scroll;}
-</style>
+    -->
+</styleaaa>
 </head>
 <body>
 <div id="header">
@@ -63,8 +67,8 @@
     <span id="dumpfile">File</span>
     <span id="profile">Profile</span>
 </div>
-<div>
-<div style="float:left; border: 2px solid black; padding:1px;">
+<div id="databox" class="box">
+<div id="pluginbox">
     <span id="tabplugin" class="activetab tab">Plugins</span>
     <span id="tabmorph" class="tab">Morphs</span>
     <div id="pluglist"></div>

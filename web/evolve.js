@@ -1,5 +1,6 @@
 function GetPluginList () {
     set_timer = false
+    set_timer_done = false
     $.ajax({url:'data/plugins',dataType:'json'}).success(
         function (data) {
             $('#pluglist').html('')
@@ -48,8 +49,9 @@ function GetPluginList () {
                         )
                     })
             })
-            if (set_timer) {
+            if (set_timer && set_timer_done == false) {
                 setTimeout(GetPluginList, 1000)
+                set_timer_done = true
             }
         }
     )
@@ -302,7 +304,10 @@ function ShowData (data) {
     //$('#datatable').html(tbl_body)
     $('#dataview').css({'display':'block'})
     $('#datatable').DataTable({
-        'pageLength':100
+        'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
+        'pageLength':100,
+        'scrollY':'68%',
+        'scrollX': true
     })
     $('#datatable').addClass('display')
 }
