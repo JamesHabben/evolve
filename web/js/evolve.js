@@ -304,6 +304,7 @@ function ShowData (data) {
     //$('#datatable').html(tbl_body)
     $('#dataview').css({'display':'block'})
     $('#datatable').DataTable({
+        'dom':'RClfrtip',
         'lengthMenu': [[25, 50, 100, -1], [25, 50, 100, 'All']],
         'pageLength':100,
         'scrollY':'68%',

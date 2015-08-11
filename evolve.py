@@ -2,7 +2,7 @@
 
 __author__ = 'james.habben'
 
-evolveVersion = '1.4.1'
+evolveVersion = '1.4.2'
 
 import sys
 import argparse
