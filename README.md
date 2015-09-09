@@ -1,4 +1,4 @@
-<img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-logo-github.png" /> <br />
+<img src="https://github.com/JamesHabben/evolve/blob/master/images/evolve-logo.png" /> <br />
 Web interface for the Volatility Memory Forensics Framework
 https://github.com/volatilityfoundation/volatility
 
@@ -30,7 +30,7 @@ Then install these dependencies: <br />
 
 ## Usage
 -f File containing the RAM dump to analyze <br />
--p Volatility profile to use during analysis <br />
+-p Volatility profile to use during analysis (--profile may not work even though it shows as an option) <br />
 -d Optional path for output file. Default is beside memory image <br />
 -l Restrict web server from serving content outside of the local machine <br />
 -r comma separated list of plugins to run at the start<br />
