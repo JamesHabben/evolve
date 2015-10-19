@@ -1,5 +1,13 @@
 # Created by https://www.gitignore.io
 
+# evolve configs
+morphs/configs/
+
+# pycharm files
+.idea
+idea/
+.idea/workspace.xml
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -59,3 +67,5 @@ docs/_build/
 # PyBuilder
 target/
 
+
+.idea/workspace.xml
