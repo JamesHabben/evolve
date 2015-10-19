@@ -32,7 +32,8 @@ import sqlite3
 import json
 import multiprocessing
 import hashlib
-#import threading
+import re
+import urllib
 
 import volatility.constants as constants
 import volatility.registry as registry
@@ -245,23 +246,42 @@ def morph_set_config(name):
                 break
         return json.dumps({'result':'success'})
     except Exception as err:
-        print '%s %s', err.message, err.args
-        return json.dumps({'result':'error','msg':err.message})
+        print err.message + ': ' + str(err.args)
+        return json.dumps({'result':'error','msg':err.message + ': ' + str(err.args)})
 
 # backend function for the jqueryFileTree
 @route('/browse/server', method='POST')
 def dirlist():
-    r=['<ul class="jqueryFileTree" style="display: none;">']
+    r = ['<ul class="jqueryFileTree" style="display: none;">']
     try:
-        r=['<ul class="jqueryFileTree" style="display: none;">']
-        d=request.forms.get('dir')
-        for f in os.listdir(d):
-            ff=os.path.join(d,f)
-            if os.path.isdir(ff):
-                r.append('<li class="directory collapsed"><a href="#" rel="%s/">%s</a></li>' % (ff,f))
+        r = ['<ul class="jqueryFileTree" style="display: none;">']
+        #d = request.forms.get('dir')
+        d = urllib.unquote(request.forms.get('dir'))
+        print d
+        if os.name == 'nt':
+            if d == '/':
+                drives = re.findall(r"[A-Z]+:.*$",os.popen('mountvol /').read(),re.MULTILINE)#.sort()
+                drives.sort()
+                print drives
+                for dr in drives:
+                    r.append('<li class="directory collapsed"><a href="#" rel="%s">%s</a></li>' % (dr,dr))
             else:
-                e=os.path.splitext(f)[1][1:] # get .ext and remove dot
-                r.append('<li class="file ext_%s"><a href="#" rel="%s">%s</a></li>' % (e,ff,f))
+                #print 'dir'
+                for f in os.listdir(d):
+                    ff=os.path.join(d,f)
+                    if os.path.isdir(ff):
+                        r.append('<li class="directory collapsed"><a href="#" rel="%s">%s</a></li>' % (ff,f))
+                    else:
+                        e=os.path.splitext(f)[1][1:] # get .ext and remove dot
+                        r.append('<li class="file ext_%s"><a href="#" rel="%s">%s</a></li>' % (e,ff,f))
+        else:
+            for f in os.listdir(d):
+                ff=os.path.join(d,f)
+                if os.path.isdir(ff):
+                    r.append('<li class="directory collapsed"><a href="#" rel="%s/">%s</a></li>' % (ff,f))
+                else:
+                    e=os.path.splitext(f)[1][1:] # get .ext and remove dot
+                    r.append('<li class="file ext_%s"><a href="#" rel="%s">%s</a></li>' % (e,ff,f))
         r.append('</ul>')
     except Exception,e:
         r.append('Could not load directory: %s' % str(e))

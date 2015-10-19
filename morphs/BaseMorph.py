@@ -12,6 +12,8 @@ class BaseMorph (object):
 
     def __init__(self):
         self.configpath = os.path.join(os.path.dirname(__file__), 'configs', '%s.json'%self.name)
+        if not os.path.exists(os.path.join(os.path.dirname(__file__), 'configs')):
+            os.makedirs(os.path.join(os.path.dirname(__file__), 'configs'))
         if os.path.exists(self.configpath):
             self.ReadConfig()
 
