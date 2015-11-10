@@ -326,14 +326,16 @@ def run_plugin_process(name, queue, config, cmds):
     config.parse_options()
     command = cmds[name](config)
     print 'running: ' + name
+    errstr = ''
     try:
         calc = command.calculate()
         command.render_sqlite(config.OUTPUT_FILE, calc)
         #AddColumn(config.OUTPUT_FILE, name, 'profile', config.PROFILE)
     except Exception as err:
         print name + ': ' + err.message
+        errstr = err.message
     finally:
-        result = {name:err.message}
+        result = {name:errstr}
         queue.put(result)
         #queue.put(name)
     return
