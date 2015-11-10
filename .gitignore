@@ -1,10 +1,11 @@
 # Created by https://www.gitignore.io
 
-# evolve configs
+# evolve paths
 morphs/configs/
+db/
 
 # pycharm files
-.idea
+.idea/
 idea/
 .idea/workspace.xml
 
@@ -66,6 +67,3 @@ docs/_build/
 
 # PyBuilder
 target/
-
-
-.idea/workspace.xml

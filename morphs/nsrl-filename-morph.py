@@ -9,6 +9,14 @@ class filenamesNSRL(BaseMorph):
     displayname = 'NSRL Filename Morph'
     helptext = 'Shows filenames that do not match the NSRL list'
     plugins = ['pslist','psxview']
+    config = {
+        'NSRLdb':{
+            'name':'NSRL Name Database',
+            'description':'Database of names in NSRL fileset',
+            'type':'path',
+            'required':True
+        }
+    }
 
     def morph(self, data):
         if data['name'] == 'pslist' or data['name'] == 'psxview':

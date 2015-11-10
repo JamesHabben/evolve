@@ -58,29 +58,40 @@ function GetPluginList () {
 
 }
 
-$.ajax({url:'data/volversion'}).success(
-    function (data) {
-        $('#volver').html(data)
-    }
-)
+function GetMeta () {
+    $.getJSON('/data/meta', function(data) {
+        $('#volver').html(data.volversion)
+        $('#evover').html('v' + data.evolveversion)
+        $('#dumpfile').html( data.filepath)
+        $('#profile').html( data.profilename)
+    })
+}
 
-$.ajax({url:'data/evolveversion'}).success(
-    function (data) {
-        $('#evover').html('v' + data)
+function ProfileDropClick () {
+    $('#profilelistbox').html('')
+    if ($('#profilelistbox').is(':hidden')) {
+        $.getJSON('/data/profilelist', function(data) {
+            listHtml = '<ul>'
+            $.each(data, function(k, v) {
+                listHtml += '<li onclick="SetProfile(\'' + v[0] + '\')">' + v[0]
+            })
+            listHtml += '</ul>'
+            $('#profilelistbox').html(listHtml)
+            $('#profilelistbox').toggle()
+        })
     }
-)
+    else {
+        $('#profilelistbox').toggle()
+    }
+}
 
-$.ajax({url:'data/filepath'}).success(
-    function (data) {
-        $('#dumpfile').html( data)
-    }
-)
-
-$.ajax({url:'data/profilename'}).success(
-    function (data) {
-        $('#profile').html( data)
-    }
-)
+function SetProfile (pname) {
+    $.ajax({url:'/config/profile/' + pname}).success(function(){
+        GetMeta()
+        $('#profilelistbox').toggle()
+        GetPluginList()
+    })
+}
 
 function ShowMorphConfig (morphname) {
     $.getJSON('/config/morph/' + morphname , function(data) {
@@ -407,27 +418,29 @@ $(function() {
         //  this if statement checks to see if backspace or delete was pressed,
         //  if so, it resets the height of the box so it can be resized properly
         if (e.which == 8 || e.which == 46) {
-            $(this).height(parseFloat($(this).css("min-height")) != 0 ?
-                parseFloat($(this).css("min-height")) : parseFloat($(this).css("font-size")));
+            $(this).height(parseFloat($(this).css('min-height')) != 0 ?
+                parseFloat($(this).css('min-height')) : parseFloat($(this).css('font-size')));
         }
         //  the following will help the text expand as typing takes place
-        while($(this).outerHeight() < this.scrollHeight + parseFloat($(this).css("borderTopWidth")) +
-                parseFloat($(this).css("borderBottomWidth"))) {
+        while($(this).outerHeight() < this.scrollHeight + parseFloat($(this).css('borderTopWidth')) +
+                parseFloat($(this).css('borderBottomWidth'))) {
             $(this).height($(this).height()+1);
         };
     });
 });
 
 $(document).ready(function() {
+    GetMeta()
     GetPluginList()
-    $("#showsqlbutton").click(ShowSql)
-    $("#runsqlbutton").click(RunSql)
-    $("#datasql").on("keydown", this, function (event) {
+    $('#showsqlbutton').click(ShowSql)
+    $('#runsqlbutton').click(RunSql)
+    $('#datasql').on('keydown', this, function (event) {
         if (event.keyCode == 116) {
             RunSql()
             return false;
         }
     })
     //$("#")
-    $("#tabmorph").click(TabClickMorph)
+    $('#tabmorph').click(TabClickMorph)
+    $('#profiledrop').click(ProfileDropClick)
 })

@@ -2,7 +2,7 @@
 
 __author__ = 'james.habben'
 
-evolveVersion = '1.4.2'
+evolveVersion = '1.5'
 
 import sys
 import argparse
@@ -53,12 +53,23 @@ from morphs.BaseMorph import BaseMorph
 results = multiprocessing.Queue()
 
 Plugins = dict(plugins=[], hash=0)
+profile = ''
 def BuildPluginList():
+    con = sqlite3.connect(config.OUTPUT_FILE)
+    curs = con.cursor()
+    curs.execute('select name from sqlite_master where type = \'table\';')
+    tables = []
+    for tab in curs.fetchall():
+        tables.append(tab[0].lower())
+    curs.close()
+    con.close()
     Plugins['plugins'] = []
     for cmdname in sorted(cmds):
         command = cmds[cmdname]
-        if command.is_valid_profile(profile):
-            Plugins['plugins'].append({'name':cmdname,'help':command.help(), 'data':0, 'error':''})
+        if command.is_valid_profile(profile) or cmdname in tables:
+            Plugins['plugins'].append({'name':cmdname,'help':command.help(), 'data':0, 'error':'', 'rowcount':0})
+
+def BuildMorphList():
     morphpath = os.path.join(os.path.dirname(__file__), 'morphs')
     for morphfile in os.listdir(morphpath):
         if morphfile.endswith('py') and morphfile.lower() not in ['basemorph.py','__init__.py']:
@@ -71,15 +82,18 @@ def BuildPluginList():
     #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
 def UpdatePluginList():
+    # Plugin['data']: 0=no data; 1=data; 2=running;
     con = sqlite3.connect(config.OUTPUT_FILE)
     curs = con.cursor()
     curs.execute('select name from sqlite_master where type = \'table\';')
     tables = []
     for tab in curs.fetchall():
         tables.append(tab[0].lower())
-    jobs = []
+    jobs = {}
     while not results.empty():
-        jobs.append(results.get())
+        #jobs.append(results.get())
+        j = results.get()
+        jobs = j
     curs.close()
     con.close()
     for cmdname in Plugins['plugins']:
@@ -87,11 +101,14 @@ def UpdatePluginList():
             cmdname['data'] = 0
         if cmdname['error'] == '' and cmdname['data'] != 2 and cmdname['name'] in tables:
             cmdname['data'] = 1
-        if cmdname['data'] == 2 and cmdname['name'] in jobs:
+        if cmdname['data'] == 2 and cmdname['name'] in jobs.keys():
+            cmdname['error'] = jobs[cmdname['name']]
             if cmdname['name'] in tables:
                 cmdname['data'] = 1
+
             else:
                 cmdname['data'] = 0
+
     #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
 if __name__ == '__main__':
@@ -126,6 +143,7 @@ if __name__ == '__main__':
 
     cmds = registry.get_plugin_classes(commands.Command, lower = True)
     BuildPluginList()
+    BuildMorphList()
     UpdatePluginList()
     
     #print 'Python Version: ' + sys.version
@@ -148,21 +166,36 @@ def ajax_plugins():
     UpdatePluginList()
     return json.dumps(Plugins)
 
-@route('/data/volversion')
-def vol_version():
-    return constants.VERSION
+@route('/data/meta')
+def evolve_meta():
+    meta = {}
+    meta['profilename'] = config.PROFILE
+    meta['filepath'] = config.LOCATION
+    meta['evolveversion'] = evolveVersion
+    meta['volversion'] = constants.VERSION
+    return json.dumps(meta)
 
-@route('/data/evolveversion')
-def evolve_version():
-    return evolveVersion
+@route('/data/profilelist')
+def profile_list():
+    plugins = registry.get_plugin_classes(obj.Profile)
+    result = []
+    for clsname, cls in sorted(plugins.items()):
+        try:
+            doc = cls.__doc__.strip().splitlines()[0]
+        except AttributeError:
+            doc = 'No docs'
+        result.append((clsname, doc))
+    return json.dumps(result)
 
-@route('/data/filepath')
-def evolve_version():
-    return config.LOCATION
-
-@route('/data/profilename')
-def evolve_version():
-    return config.PROFILE
+@route('/config/profile/<pname>')
+def set_profile(pname):
+    global profile
+    global cmds
+    global config
+    config.PROFILE = pname
+    print 'Set profile to {0}'.format(pname)
+    BuildPluginList()
+    UpdatePluginList()
 
 @route('/data/view/<name>', method='GET')
 @route('/data/view/<name>', method='POST')
@@ -257,16 +290,13 @@ def dirlist():
         r = ['<ul class="jqueryFileTree" style="display: none;">']
         #d = request.forms.get('dir')
         d = urllib.unquote(request.forms.get('dir'))
-        print d
         if os.name == 'nt':
             if d == '/':
-                drives = re.findall(r"[A-Z]+:.*$",os.popen('mountvol /').read(),re.MULTILINE)#.sort()
+                drives = re.findall(r"[A-Z]+:.*$",os.popen('mountvol /').read(),re.MULTILINE)
                 drives.sort()
-                print drives
                 for dr in drives:
                     r.append('<li class="directory collapsed"><a href="#" rel="%s">%s</a></li>' % (dr,dr))
             else:
-                #print 'dir'
                 for f in os.listdir(d):
                     ff=os.path.join(d,f)
                     if os.path.isdir(ff):
@@ -299,11 +329,31 @@ def run_plugin_process(name, queue, config, cmds):
     try:
         calc = command.calculate()
         command.render_sqlite(config.OUTPUT_FILE, calc)
+        #AddColumn(config.OUTPUT_FILE, name, 'profile', config.PROFILE)
     except Exception as err:
         print name + ': ' + err.message
     finally:
-        queue.put(name)
+        result = {name:err.message}
+        queue.put(result)
+        #queue.put(name)
     return
+
+def AddColumn(db, table, column, value):
+    con = sqlite3.connect(db)
+    cur = con.cursor()
+    try:
+        cur.execute('ALTER TABLE ' + table + ' ADD COLUMN ' + column + ' TEXT default NULL;')
+        cur.close()
+        con.close()
+        con2 = sqlite3.connect(db)
+        cur2 = con2.cursor()
+        query = "update {0} set {1} = '{2}' --where {1} is NULL;".format(table, column, value)
+        #cur.execute('update ' + table + ' set ' + column + ' = \'' + value + '\' where ' + column + ' is null;')
+        cur2.execute(query)
+    except:
+        pass # handle the error
+    cur2.close()
+    con2.close()
 
 if __name__ == '__main__':
     if args.run:

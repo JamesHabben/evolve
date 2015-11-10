@@ -3,7 +3,11 @@ body {margin:0; font-family:‘Lucida Sans Unicode’,‘Lucida Grande’,sans-s
 #header {background-color:black; width:full; height:38px; color:white; font-size:35pt; padding:10px; flex: 0 0 38px; -webkit-flex: 0 0 38px;}
 #dumpdata {background-color:black; padding:2px 7px 2px 7px; flex: 0 0 20px; -webkit-flex: 0 0 20px;}
 #dumpfile {color:grey;}
-#profile {color:grey; float:right;}
+#profilebox {color:white; background:black; float:right; position:relative; overflow:hidden; width:180px; z-index:1;}
+#profiledrop {cursor:pointer; float:right;}
+#profilelistbox {z-index:1; display: none;}
+#profilelistbox ul {padding:2px; margin:1px;}
+#profilelistbox li {list-style: none; cursor:pointer; padding:1px; border: 1px solid black;}
 #volhdr {font-size:16pt;}
 #evover {font-size:10pt;}
 #twitter {font-size:10pt; float:right;}
