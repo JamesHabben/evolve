@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>evolve API List</title>
+</head>
+<body>
+<h1>evolve API List</h1>
+The following API URLs return data from the python component of evolve in JSON format. Some
+require parameters to return data specific to that identifier while others provide more general
+data. If viewing manually, it will be easier to read with a JSON tool or plugin. All links
+will open in a new tab/window via 'target=_blank' attribute.
+
+<h2>Read Only API with no parameters</h2>
+The following are read only URLs that return data outright. Clicking on the links will
+result in data being display without any further actions.
+<p>
+
+    <b>Plugin List: {get}</b><br>
+    <a href="/data/plugins" target="_blank">/data/plugins</a><br>
+    Return a list of available volatility plugins based on the currently used profile. This
+    will return various additional pieces of data to include morphs, row counts, errors, etc.
+<p>
+
+    <b>Evolve Metadata: {get}</b><br>
+    <a href="/data/meta" target="_blank">/data/meta</a><br>
+    Return a small set of data with the volatility and evolve version, memdump path, and
+    profile selected.
+<p>
+
+    <b>Volatility Profile List: {get}</b><br>
+    <a href="/data/profilelist" target="_blank">/data/profilelist</a><br>
+    Return a list of Volatility profiles available.
+<p>
+
+    <b>Volatility Command Options List: {get}</b><br>
+    <a href="/data/optslist" target="_blank">http://localhost:8080/data/optslist</a><br>
+    Return a list of command line options. (also available with a parameter)
+
+<h2>Read Only API with parameters</h2>
+The follwing are read only URLs that return data with parameter input. At least one will
+be required with others being noted as optional.
+<p>
+
+    <b>Plugin Data: {get / post}</b><br>
+    <a href="/data/view/" target="_blank">/data/view/[name]</a><br>
+    <a href="/data/view/<name>/morph/<morph>" target="_blank">/data/view/[name]/morph/[morph]</a><br>
+    Return the data generated from Volatility for the named plugin. This call will not cause
+    the plugin to run against the memdump; the data must already be in the database. The second URL
+    returns the same data with the column values being potentially modified by the morph as named.<br>
+    Parameters:
+        <li>name {get}: Name of volatility plugin.
+        <li>query {post} [optional]: SQL statement to perform against plugin data.
+        <li>morph {get} [optional]: Name of morph to apply to plugin data.
+<p>
+
+    <b>Process ID Profile: {get}</b><br>
+    <a href="/data/view/pidprofile/<pid>" target="_blank">/data/view/pidprofile/[pid]</a><br>
+    Return a result set across static list of tables that contain a process id (PID) or
+    parent process id (PPID). <br>
+    Parameters:
+        <li>pid {get}: Process identifier to search for.
+<p>
+
+    <b>Volatility Command Options List - Plugin Specific: {get}</b><br>
+    <a href="/data/optslist/plugin/<name>" target="_blank">http://localhost:8080/data/optslist/plugin/[name]</a><br>
+    Return a list of plugin specific command line options with default options removed.<br>
+    Parameters:
+        <li>name {get}: Name of plugin.
+
+<h2>Writing API with parameters</h2>
+The follwing are URLs that do not return data and instead start a process or place data into
+the configuration or database.
+<p>
+
+    <b>Set Volatility Profile: {get}</b><br>
+    <a href="/config/profile/<pname>" target="_blank">/config/profile/[pname]</a><br>
+    Set the configuration of evolve to use the named Volatility profile for future plugin runs.<br>
+    Parameters:
+        <li>pname {get}: Name of volatility profile.
+<p>
+
+    <b>Run Volatility Plugin: {get}</b><br>
+    <a href="/run/plugin/<name>" target="_blank">/run/plugin/[name]</a><br>
+    Start a Volatility plugin through Python Multiprocess against the memdump.<br>
+    Parameters:
+        <li>name {get}: Name of volatility plugin to run.
+<p>
+
+/run/plugin/<name>
+
+</body>
+</html>

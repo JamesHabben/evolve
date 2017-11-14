@@ -23,9 +23,21 @@ function GetPluginList () {
                 }),
                 function(k,v) {
                     tag_string = '<div class="plugin" title="' + v.help + '">' + v.name
+                    plugerr = false
+                    plugerrtext = ''
+                    if (v.error != '') {
+                        plugerr = true
+                        plugerrtext = v.error
+                    }
                     if (v.data == 0) {
-                        tag_string += '<span class="pluginrun" onclick="RunPlugin(\'' + v.name + '\',this)">' +
-                                      'run</span></div>'
+                        if (v.error != '') {
+                            tag_string += '<span class="pluginrun plugerr" title="' + v.error + '" onclick="RunPlugin(\'' + v.name + '\',this)">' +
+                                          'run</span></div>'
+                        }
+                        else {
+                            tag_string += '<span class="pluginrun" onclick="RunPlugin(\'' + v.name + '\',this)">' +
+                                          'run</span></div>'
+                        }
                     }
                     else {
                         tag_string += '<span class="pluginrunning" >running</span></div>'
@@ -58,13 +70,44 @@ function GetPluginList () {
 
 }
 
+function filterTabs (clearText = false) {
+    if (clearText == true) {
+        $('#tabsearch')[0].value = ''
+    }
+    $('.plugin').each(function() {
+        //console.log($(this).text());//.id + " - " + v.value)
+        //console.log($('#tabsearch')[0].value)
+        //console.log($(this).text().indexOf($('#tabsearch')[0].value))
+        if ($(this).text().indexOf($('#tabsearch')[0].value) < 0) {
+            $(this).css({'display':'none'})
+        }
+        else {
+            $(this).css({'display':'block'})
+        }
+    })
+    $('#tabsearch')[0].focus()
+}
+
+var dumpfile
 function GetMeta () {
     $.getJSON('/data/meta', function(data) {
         $('#volver').html(data.volversion)
         $('#evover').html('v' + data.evolveversion)
         $('#dumpfile').html( data.filepath)
         $('#profile').html( data.profilename)
+        //document.title = "evolve | " + data.filepath.substr(data.filepath.replace(/\\/g, '/').lastIndexOf('/')+1)
+        dumpfile = data.filepath
+        SetTitle()
     })
+}
+
+function SetTitle (modulename) {
+    if (modulename == '') {
+        document.title = "evolve | " + dumpfile.substr(dumpfile.replace(/\\/g, '/').lastIndexOf('/')+1)
+    }
+    else {
+        document.title = "evolve | " + dumpfile.substr(dumpfile.replace(/\\/g, '/').lastIndexOf('/')+1) + " | " + modulename
+    }
 }
 
 function ProfileDropClick () {
@@ -237,6 +280,7 @@ function GetData (pluginname) {
 }
 
 function GetMorph (pluginname, morphname) {
+    $('#loading').css({'display':'block'})
     $.getJSON('/data/view/' + pluginname + '/morph/' + morphname, function(data) {
         ShowData(data)
         $('#tag' + morphname).addClass('activemorphtag')
@@ -245,6 +289,16 @@ function GetMorph (pluginname, morphname) {
             })
 
     })
+}
+
+function ShowProfileView (data) {
+    $('#configview').css({'display':'none'})
+    $('#loading').fadeOut()
+    SetTitle(data.name + '[' + data.query + ']')
+    $('#datahdr').html(data.name + '[' + data.query + ']')
+    $('#datatable_wrapper').remove()
+    $('#dataview').append('<table id="datatable' + plugin + '" class="">' + tbl_body + '</table>')
+
 }
 
 function ShowData (data) {
@@ -308,6 +362,7 @@ function ShowData (data) {
         //    GetMorph(data.name, morphname)
         //})
     })
+    SetTitle(data.name)
     $('#datahdr').html(data.name)
     $('#datasql').val(data.query)
     $('#datatable_wrapper').remove()
@@ -440,7 +495,20 @@ $(document).ready(function() {
             return false;
         }
     })
+    $('#tabsearch').on('keydown', this, function (event) {
+        //alert(event.keyCode)
+        if (event.keyCode == 27) {
+            //$('#tabsearch')[0].value = ''
+            filterTabs(true)
+            return false;
+        }
+    })
     //$("#")
     $('#tabmorph').click(TabClickMorph)
     $('#profiledrop').click(ProfileDropClick)
+    $('#tabsearch').keyup(filterTabs)
+    $('#clearfilter').on('click', this, function(event) {
+        filterTabs(true);
+        return false;
+    })
 })

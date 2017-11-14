@@ -2,7 +2,7 @@
 
 __author__ = 'james.habben'
 
-evolveVersion = '1.5'
+evolveVersion = '1.6'
 
 import sys
 import argparse
@@ -11,12 +11,16 @@ if __name__ == '__main__':
     print 'Evolve Version: ' + evolveVersion
 
     argParser = argparse.ArgumentParser(description='Web interface for Volatility Framework.')
+    argParser.add_argument('--version', action='version', version='%(prog)s ' + evolveVersion)
     argParser.add_argument('-d', '--dbfolder', help='Optional database location')
     argParser.add_argument('-f', '--file', help='RAM dump to analyze')
     argParser.add_argument('-l', '--local', help='Restrict webserver to serving \'localhost\' only')
     argParser.add_argument('-w', '--webport', help='Port to bind Web Server on', default=8080)
-    argParser.add_argument('-p', '--profile', help='Memory profile to use with Volatility')
     argParser.add_argument('-r', '--run', help='Give a comma separated list of plugins to run on startup')
+    argParser.add_argument('-p', '--profile', help='VOL: Memory profile to use with Volatility')
+    argParser.add_argument('--kdbg', help='VOL: Offset of KDBG for faster searching')
+    argParser.add_argument('--dtb', help='VOL: Offset of DTB for faster searching')
+    argParser.add_argument('--plugins', help='VOL: Path to additional Volatility plugins to use')
     args = argParser.parse_args()
     sys.argv = []
 
@@ -36,15 +40,24 @@ import re
 import urllib
 
 import volatility.constants as constants
+import volatility.conf as conf
+if __name__ == '__main__':
+    print 'Volatility Version: ' + constants.VERSION
+    config = conf.ConfObject()
+    if args.plugins:
+        config.PLUGINS = args.plugins
+        #config.update('plugins', args.plugins)
+
 import volatility.registry as registry
 import volatility.commands as commands
-import volatility.conf as conf
 import volatility.obj as obj
 #import volatility.plugins.taskmods as taskmods
 import volatility.addrspace as addrspace
 #import volatility.utils as utils
 #import volatility.renderers as render
 #import volatility.plugins as plugins
+import volatility.debug
+logger = volatility.debug
 
 #from bottle import route, Bottle, run, request
 
@@ -55,6 +68,7 @@ results = multiprocessing.Queue()
 Plugins = dict(plugins=[], hash=0)
 profile = ''
 def BuildPluginList():
+    config.parse_options()
     con = sqlite3.connect(config.OUTPUT_FILE)
     curs = con.cursor()
     curs.execute('select name from sqlite_master where type = \'table\';')
@@ -69,6 +83,24 @@ def BuildPluginList():
         if command.is_valid_profile(profile) or cmdname in tables:
             Plugins['plugins'].append({'name':cmdname,'help':command.help(), 'data':0, 'error':'', 'rowcount':0})
 
+def BuildConfigOptsList(cfg):
+    optsList = []
+    for opt in cfg.optparser.option_list:
+        optsList.append(({'name':opt.dest, 'arg':opt.get_opt_string(), 'help':opt.help, 'type':opt.type, 'action':opt.action}))
+    return tuple(optsList)
+
+def BuildConfigOpts(plugin='', getDiff=False):
+    optsList = BuildConfigOptsList(config)
+    if plugin.__len__() > 0:
+        config2 = conf.ConfObject()
+        cmds[plugin](config2)
+        optsList2 = BuildConfigOptsList(config2)
+        #set(optsList)
+        #set(optsList2)
+        return [x for x in optsList2 if x not in optsList]
+    else:
+        return optsList
+
 def BuildMorphList():
     morphpath = os.path.join(os.path.dirname(__file__), 'morphs')
     for morphfile in os.listdir(morphpath):
@@ -79,7 +111,6 @@ def BuildMorphList():
     for sub in BaseMorph.__subclasses__():
         #sub.__init__(sub)
         Plugins['morphs'].append({'name':sub.name, 'display':sub.displayname,'plugins':sub.plugins, 'helptext':sub.helptext})
-    #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
 def UpdatePluginList():
     # Plugin['data']: 0=no data; 1=data; 2=running;
@@ -109,17 +140,39 @@ def UpdatePluginList():
             else:
                 cmdname['data'] = 0
 
-    #Plugins['hash'] = hash(json.dumps(Plugins['plugins'], sort_keys=True))
 
 if __name__ == '__main__':
-    print 'Volatility Version: ' + constants.VERSION
+    #print 'Volatility Version: ' + constants.VERSION
 
-    config = conf.ConfObject()
+    #config = conf.ConfObject()
+    #config.update('plugins', args.plugins)
+    #config.PLUGINS = args.plugins
+
     registry.PluginImporter()
     #config = conf.ConfObject()
     registry.register_global_options(config, addrspace.BaseAddressSpace)
     registry.register_global_options(config, commands.Command)
     config.parse_options(False)
+
+    config.LOCATION = 'file://' + args.file
+    config.OUTPUT_FILE = args.file + '.sqlite'
+    if args.dbfolder:
+        print 'Hashing input file...',
+        config.OUTPUT_FILE = os.path.join(args.dbfolder, hashlib.md5(open(args.file).read()).hexdigest() + '.sqlite')
+        print 'done'
+
+    #check for existing sqlite file and pull configs
+    con = sqlite3.connect(config.OUTPUT_FILE)
+    curs = con.cursor()
+    query = 'create table if not exist metadata (filepath,evolve_ver,vol_ver,pysqlite_ver,sqlite_ver,vol_profile,vol_kdbg,datetime)'
+
+    query = 'create table is not exist plugin_runs (fileptah,evolve_ver,vol_ver,vol_profile,vol_kdbg,datetime,vol_plugin,rowcount,vol_parameters)'
+
+    query = 'select * from metadata'
+    try:
+        curs.execute(query)
+    except Exception as err:
+        print err.message
 
     profs = registry.get_plugin_classes(obj.Profile)
     if args.profile:
@@ -131,13 +184,16 @@ if __name__ == '__main__':
         print 'Invalid profile ' + config.PROFILE + ' selected'
         exit()
 
-    config.LOCATION = 'file://' + args.file
-    config.OUTPUT_FILE = args.file + '.sqlite'
-    if args.dbfolder:
-        print 'Hashing input file...',
-        config.OUTPUT_FILE = os.path.join(args.dbfolder, hashlib.md5(open(args.file).read()).hexdigest() + '.sqlite')
-        print 'done'
+    if args.kdbg:
+        config.KDBG = args.kdbg
+    if args.dtb:
+        config.DTB = args.dtb
+    #if args.plugins:
+    #    config.PLUGINS = args.plugins
+    #    config.update('plugins', args.plugins)
     config.parse_options()
+
+
     profile = profs[config.PROFILE]()
 
 
@@ -156,6 +212,10 @@ from bottle import route, Bottle, run, request, static_file
 @route('/')
 def index():
     return static_file('evolve.htm',root='web')
+
+@route('/apilist')
+def index():
+    return static_file('apilist.htm',root='web')
 
 @route('/web/:path#.+#', name='web')
 def static(path):
@@ -187,15 +247,22 @@ def profile_list():
         result.append((clsname, doc))
     return json.dumps(result)
 
+@route('/data/optslist', method='GET')
+@route('/data/optslist/plugin/<name>', method='GET')
+def opts_list(name=''):
+    request.route
+    return json.dumps(BuildConfigOpts(name))
+
 @route('/config/profile/<pname>')
 def set_profile(pname):
     global profile
     global cmds
     global config
     config.PROFILE = pname
+    profile = profs[config.PROFILE]()
     print 'Set profile to {0}'.format(pname)
     BuildPluginList()
-    UpdatePluginList()
+    #UpdatePluginList()
 
 @route('/data/view/<name>', method='GET')
 @route('/data/view/<name>', method='POST')
@@ -234,6 +301,44 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+@route('/data/view/pidprofile/<pid>', method='GET')
+def pid_profile(pid):
+    con = sqlite3.connect(config.OUTPUT_FILE)
+    curs = con.cursor()
+    result = {}
+    result['name'] = 'PID Profile'
+    result['query'] = pid
+
+    result = pull_pid_data('pslist', pid, result)
+    result = pull_pid_data('pslist', pid, result, 'pslist-children', 'ppid')
+    result = pull_pid_data('dlllist', pid, result)
+    result = pull_pid_data('connections', pid, result)
+    result = pull_pid_data('connscan', pid, result)
+    result = pull_pid_data('sockets', pid, result)
+    result = pull_pid_data('socketscan', pid, result)
+    result = pull_pid_data('netscan', pid, result)
+    result = pull_pid_data('malfind', pid, result)
+    result = pull_pid_data('psxview', pid, result)
+    result = pull_pid_data('cmdline', pid, result)
+    result = pull_pid_data('cmdscan', pid, result)
+
+    return json.dumps(result)
+
+def pull_pid_data(table, value, result, name='', where='pid'):
+    con = sqlite3.connect(config.OUTPUT_FILE)
+    curs = con.cursor()
+    if name == '':
+        name = table
+    result['datasets'] = []
+    result['datasets'] [name] = {'columns': [], 'data': []}
+    try:
+        curs.execute('select * from ' + table + ' where ' + where + ' = ' + value)
+        result['datasets'][name]['data'] = curs.fetchall()
+        result['datasets'][name]['columns'] = [i[0] for i in curs.description]
+    except Exception as err:
+        result['error'] = err.message
+    return result
 
 @route('/data2/plugin/<name>')
 def plugin_data2(name):
@@ -339,6 +444,20 @@ def run_plugin_process(name, queue, config, cmds):
         queue.put(result)
         #queue.put(name)
     return
+
+def isSQLite3(filename):
+    from os.path import isfile, getsize
+
+    if not isfile(filename):
+        return False
+    if getsize(filename) < 100: # SQLite database file header is 100 bytes
+        return False
+
+    with open(filename, 'rb') as fd:
+        header = fd.read(100)
+
+    return header[:16] == 'SQLite format 3\x00'
+
 
 def AddColumn(db, table, column, value):
     con = sqlite3.connect(db)
