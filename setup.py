@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='evolve',
-    version='1.5',
+    version='1.6',
     packages=['morphs','web'],
     url='https://github.com/JamesHabben/evolve',
     license='',
